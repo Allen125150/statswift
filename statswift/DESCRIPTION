@@ -1,0 +1,30 @@
+Package: statswift
+Title: Fast and Friendly Descriptive Statistics and Data Summaries
+Version: 0.1.0
+Authors@R: 
+    person("Allen", "Zagic", email = "allen032@icloud.com", role = c("aut", "cre"))
+Description: statswift provides a clean, intuitive toolkit for performing
+    descriptive statistics and data summaries in R. It offers functions for
+    computing extended summary statistics, detecting outliers, summarizing
+    distributions, comparing groups, and generating formatted data reports.
+    The package uses both S3 and S4 class systems to demonstrate object-oriented
+    design in R. Designed for students, analysts, and researchers who want
+    fast, readable statistical summaries without heavy dependencies.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends:
+    R (>= 4.1.0)
+Imports:
+    stats,
+    graphics,
+    grDevices,
+    methods
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: knitr
+URL: https://github.com/yourusername/statswift
+BugReports: https://github.com/yourusername/statswift/issues

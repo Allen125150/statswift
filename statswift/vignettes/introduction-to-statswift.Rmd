@@ -1,0 +1,182 @@
+---
+title: "Introduction to statswift"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to statswift}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+The **statswift** package is a lightweight, easy-to-use toolkit for descriptive statistics and data summaries in R. It is designed for students and analysts who need comprehensive statistical output quickly, without relying on heavy external packages.
+
+`statswift` provides five core functions:
+
+| Function | Purpose |
+|---|---|
+| `swift_summary()` | Extended descriptive statistics for a numeric vector |
+| `swift_outliers()` | Outlier detection using IQR or Z-score methods |
+| `swift_compare()` | Group-wise descriptive comparison |
+| `swift_distplot()` | Distribution visualization (histogram + density + boxplot) |
+| `swift_report()` | Full statistical report for an entire data frame |
+
+It uses **S3 classes** (`SwiftSummary`, `SwiftOutliers`, `SwiftCompare`) and one **S4 class** (`SwiftReport`), each with clean print/show methods.
+
+---
+
+## Installation
+
+```{r install, eval=FALSE}
+# Install from GitHub using devtools
+devtools::install_github("yourusername/statswift")
+```
+
+```{r load}
+library(statswift)
+```
+
+---
+
+## 1. Extended Descriptive Summary — `swift_summary()`
+
+The `swift_summary()` function computes far more than base R's `summary()`. It includes skewness, kurtosis, standard error, coefficient of variation, and more.
+
+```{r swift_summary}
+x <- c(23, 45, 67, 12, 89, 34, 56, NA, 78, 90, 11, 45, 67)
+result <- swift_summary(x)
+print(result)
+```
+
+The output is an **S3 object** of class `SwiftSummary`. You can access individual statistics directly:
+
+```{r swift_summary_access}
+result$mean
+result$skewness
+result$cv
+```
+
+**Interpreting skewness:**
+
+- Near 0: roughly symmetric
+- Positive: right-skewed (tail to the right)
+- Negative: left-skewed (tail to the left)
+
+---
+
+## 2. Outlier Detection — `swift_outliers()`
+
+`swift_outliers()` supports two classic methods:
+
+- **IQR method** (default): flags values below Q1 − 1.5×IQR or above Q3 + 1.5×IQR
+- **Z-score method**: flags values with |Z| > threshold (default 3)
+
+```{r swift_outliers_iqr}
+y <- c(2, 3, 4, 5, 6, 7, 100, -50, 5, 4, 3, 6)
+swift_outliers(y)
+```
+
+```{r swift_outliers_zscore}
+swift_outliers(y, method = "zscore", threshold = 2.5)
+```
+
+The returned `SwiftOutliers` object tells you the outlier values, their positions in the vector, and the percentage of data flagged.
+
+---
+
+## 3. Group Comparison — `swift_compare()`
+
+Use `swift_compare()` to compare a numeric variable across categorical groups. This is especially useful before running group-based tests (e.g., t-tests, ANOVA).
+
+```{r swift_compare}
+scores <- c(85, 90, 78, 92, 88, 76, 95, 60, 70, 82, 91, 74)
+groups <- c("A","A","B","A","B","B","A","B","B","A","A","B")
+
+swift_compare(scores, groups)
+```
+
+The result is a clean data frame showing N, Mean, Median, SD, Min, Max, and IQR for each group.
+
+---
+
+## 4. Distribution Plot — `swift_distplot()`
+
+`swift_distplot()` creates a two-panel visualization: a histogram with overlaid density curve on top, and a boxplot below.
+
+```{r swift_distplot, fig.width=6, fig.height=5}
+set.seed(123)
+data <- c(rnorm(80, mean = 50, sd = 10), rnorm(20, mean = 80, sd = 5))
+swift_distplot(data, main = "Bimodal Distribution Example", col = "steelblue")
+```
+
+Vertical lines for the **mean** (red dashed) and **median** (green dotted) are shown by default — their separation is a visual cue for skewness.
+
+---
+
+## 5. Full Dataset Report — `swift_report()` (S4)
+
+For a holistic view of an entire data frame, use `swift_report()`. It applies descriptive statistics to every numeric column and returns a structured **S4 object** of class `SwiftReport`.
+
+```{r swift_report}
+report <- swift_report(mtcars, data_name = "Motor Trend Cars (1974)")
+show(report)
+```
+
+You can also inspect the S4 slots directly:
+
+```{r swift_report_slots}
+report@n_rows
+report@numeric_cols
+report@summaries[["mpg"]]
+```
+
+---
+
+## Putting It All Together
+
+Here is a typical workflow using `statswift` on the built-in `airquality` dataset:
+
+```{r workflow}
+data(airquality)
+
+# Step 1: Get an overall report
+swift_report(airquality, data_name = "New York Air Quality (1973)")
+
+# Step 2: Dive into Ozone specifically
+swift_summary(airquality$Ozone)
+
+# Step 3: Check for outliers
+swift_outliers(airquality$Ozone, method = "iqr")
+
+# Step 4: Compare Ozone by Month
+swift_compare(airquality$Ozone, airquality$Month)
+```
+
+```{r workflow_plot, fig.width=6, fig.height=5}
+# Step 5: Visualize the distribution
+swift_distplot(airquality$Ozone, main = "Ozone Distribution (NYC, 1973)", col = "darkorange")
+```
+
+---
+
+## Class System Summary
+
+| Class | System | Constructor | Print/Show |
+|---|---|---|---|
+| `SwiftSummary` | S3 | `swift_summary()` | `print.SwiftSummary()` |
+| `SwiftOutliers` | S3 | `swift_outliers()` | `print.SwiftOutliers()` |
+| `SwiftCompare` | S3 | `swift_compare()` | `print.SwiftCompare()` |
+| `SwiftReport` | S4 | `swift_report()` | `show("SwiftReport")` |
+
+---
+
+## License
+
+`statswift` is licensed under the **MIT License**. See the `LICENSE` file for details.
